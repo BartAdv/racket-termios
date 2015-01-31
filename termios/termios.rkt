@@ -1,34 +1,25 @@
 #lang racket/base
 
 (require ffi/unsafe
-	 ffi/unsafe/define
-	 racket/match)
+	 ffi/unsafe/define)
 
-;; common defines, not belonging to termios, in fact could be moved
-;; somewhere (or maybe there does exist some module with them)
-
-(define EBADF 12) ;; Bad file number
-(define ENOTTY 25) ;; Not a typewriter
-
-;; termios.h defined consts
-(define _NCCS 32)
-
-(define _CLOCAL #x00008000)
-
-(define TCSANOW 0)
+(require "defines.rkt")
+(provide (all-from-out "defines.rkt"))
 
 (define _tcflag_t _uint)
-(define _cc_t _uint)
+(define _cc_t _byte)
 (define _speed_t _uint)
+
+(define NCCS 32)
 
 (define-cstruct _TERMIOS
   ([c_iflag _tcflag_t]
    [c_oflag _tcflag_t]
    [c_cflag _tcflag_t]
    [c_lflag _tcflag_t]
-   [c_cc (_array/vector _cc_t _NCCS)]
+   [c_cc (_array/vector _cc_t NCCS)]
    [c_ispeed _speed_t]
-   [c_ospeed _speed_t))
+   [c_ospeed _speed_t]))
 
 (define-ffi-definer define-termios (ffi-lib "libc.so.6"))
 
