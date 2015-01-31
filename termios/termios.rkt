@@ -11,7 +11,7 @@
 (define ENOTTY 25) ;; Not a typewriter
 
 ;; termios.h defined consts
-(define _NCCS 19)
+(define _NCCS 32)
 
 (define _CLOCAL #x00008000)
 
@@ -19,13 +19,16 @@
 
 (define _tcflag_t _uint)
 (define _cc_t _uint)
+(define _speed_t _uint)
 
 (define-cstruct _TERMIOS
   ([c_iflag _tcflag_t]
    [c_oflag _tcflag_t]
    [c_cflag _tcflag_t]
    [c_lflag _tcflag_t]
-   [c_cc (_array/vector _cc_t _NCCS)]))
+   [c_cc (_array/vector _cc_t _NCCS)]
+   [c_ispeed _speed_t]
+   [c_ospeed _speed_t))
 
 (define-ffi-definer define-termios (ffi-lib "libc.so.6"))
 
