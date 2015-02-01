@@ -1,7 +1,7 @@
 #include <termios.h>
 #include "escheme.h"
 
-#define MODULE_NAME "termios-defines"
+#define MODULE_NAME "defines"
 
 Scheme_Object* scheme_reload(Scheme_Env* env)
 {
