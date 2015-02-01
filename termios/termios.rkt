@@ -3,14 +3,12 @@
 (require ffi/unsafe
 	 ffi/unsafe/define)
 
-(require "defines.rkt")
-(provide (all-from-out "defines.rkt"))
+(require "termios-defines.rkt")
+(provide (all-from-out "termios-defines.rkt"))
 
 (define _tcflag_t _uint)
 (define _cc_t _byte)
 (define _speed_t _uint)
-
-(define NCCS 32)
 
 (define-cstruct _TERMIOS
   ([c_iflag _tcflag_t]
