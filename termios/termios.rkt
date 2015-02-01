@@ -68,7 +68,7 @@
 ;; TODO: make it conditional basing on __USE_MISC
 (define-termios cfsetspeed (_fun _TERMIOS-pointer _speed_t
 				 -> (r : _int)
-				 -> (check r 'cfsetspeed))))
+				 -> (check r 'cfsetspeed)))
 				   
 
 (define-termios cfmakeraw (_fun _TERMIOS-pointer -> _void))
