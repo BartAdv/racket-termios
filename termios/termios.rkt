@@ -42,33 +42,57 @@
     (error who "failed: ~a" v)))
 
 (define-termios tcgetattr
-  (_fun (f : _file-port/no-null)
+  (_fun #:save-errno 'posix
+	(f : _file-port/no-null)
 	(t : (_ptr o _TERMIOS))
 	-> (r : _int)
-	-> (case r
-	     [(EBADF) (raise-argument-error '_file-port/no-null "file-port" f)]
-	     [(ENOTTY) (raise "File associated with given file port is not a terminal")]
-	     [else t])))
+	-> (if (zero? r)
+	       t
+	       (match (saved-errno)
+		 [(== EBADF) (raise-argument-error '_file-port/no-null "file-port" f)]
+		 [(== ENOTTY) (error "File associated with given file port is not a terminal")]
+		 [_ (error 'tcgetattr "Unknown errno: ~a" (saved-errno))]))))
 
 
-(define-termios tcsetattr (_fun _file-port/no-null _int _TERMIOS-pointer -> (r : _int) -> (check r 'tcsetattr))) ; const pointer?
+(define-termios tcsetattr
+  (_fun #:save-errno 'posix
+	(f : _file-port/no-null) _int _TERMIOS-pointer ; const pointer?
+	-> (r : _int)
+	-> (unless (zero? r)
+	     (match (saved-errno)
+	       [(== EBADF) (raise-argument-error '_file_port/no-null "file-port" f)]
+	       [(== EINTR) (error "A signal interrupted tcsetattr")]
+	       [(== EINVAL) (error "The optional_actions argument is not a supported value, or an attempt was made to change an attribute represented in the termios structure to an unsupported value")]
+	       [(== ENOTTY) (error "File associated with given file port is not a terminal")]
+	       [(== EIO) (error "The process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU")]
+	       [_ (error 'tcsetattr "nknown errno: ~a" (saved-errno))]))))
 
 (define-termios cfgetospeed (_fun _TERMIOS-pointer -> _speed_t))
 
 (define-termios cfgetispeed (_fun _TERMIOS-pointer -> _speed_t))
 
-(define-termios cfsetospeed (_fun _TERMIOS-pointer _speed_t
-				  -> (r : _int)
-				  -> (check r 'cfsetospeed)))
+(define-syntax-rule (einval r)
+  (unless (zero? r)
+    (match (saved-errno)
+      [(== EINVAL) (error "The speed value is not a valid baud rate")])))
+(define-termios cfsetospeed
+  (_fun #:save-errno 'posix
+	_TERMIOS-pointer _speed_t
+	-> (r : _int)
+	-> (einval r)))
 
-(define-termios cfsetispeed (_fun _TERMIOS-pointer _speed_t
-				  -> (r : _int)
-				  -> (check r 'cfsetispeed)))
+(define-termios cfsetispeed
+  (_fun #:save-errno 'posix
+	_TERMIOS-pointer _speed_t
+	-> (r : _int)
+	-> (einval r)))
 
 ;; TODO: make it conditional basing on __USE_MISC
-(define-termios cfsetspeed (_fun _TERMIOS-pointer _speed_t
-				 -> (r : _int)
-				 -> (check r 'cfsetspeed)))
+(define-termios cfsetspeed
+  (_fun #:save-errno 'posix
+	_TERMIOS-pointer _speed_t
+	-> (r : _int)
+	-> (einval r)))
 				   
 
 (define-termios cfmakeraw (_fun _TERMIOS-pointer -> _void))

@@ -16,6 +16,9 @@ Scheme_Object* scheme_reload(Scheme_Env* env)
 
   DEF(EBADF);
   DEF(ENOTTY);
+  DEF(EINTRY);
+  DEF(EINVAL);
+  DEF(EIO);
   
 #if defined __USE_MISC
   DEF(__USE_MISC);
