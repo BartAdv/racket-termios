@@ -6,6 +6,9 @@
 (require "private/defines.rkt")
 (provide (all-from-out "private/defines.rkt"))
 
+(provide tcgetattr)
+(provide tcsetattr)
+
 (define _tcflag_t _uint)
 (define _cc_t _byte)
 (define _speed_t _uint)
