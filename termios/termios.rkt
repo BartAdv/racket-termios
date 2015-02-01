@@ -3,8 +3,8 @@
 (require ffi/unsafe
 	 ffi/unsafe/define)
 
-(require "termios-defines.rkt")
-(provide (all-from-out "termios-defines.rkt"))
+(require "private/termios-defines.rkt")
+(provide (all-from-out "private/termios-defines.rkt"))
 
 (define _tcflag_t _uint)
 (define _cc_t _byte)
