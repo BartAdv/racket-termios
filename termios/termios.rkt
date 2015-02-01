@@ -52,3 +52,39 @@
 
 
 (define-termios tcsetattr (_fun _file-port/no-null _int _TERMIOS-pointer -> (r : _int) -> (check r 'tcsetattr))) ; const pointer?
+
+(define-termios cfgetospeed (_fun _TERMIOS-pointer -> _speed_t))
+
+(define-termios cfgetispeed (_fun _TERMIOS-pointer -> _speed_t))
+
+(define-termios cfsetospeed (_fun _TERMIOS-pointer _speed_t
+				  -> (r : _int)
+				  -> (check r 'cfsetospeed)))
+
+(define-termios cfsetispeed (_fun _TERMIOS-pointer _speed_t
+				  -> (r : _int)
+				  -> (check r 'cfsetispeed)))
+
+;; TODO: make it conditional basing on __USE_MISC
+(define-termios cfsetspeed (_fun _TERMIOS-pointer _speed_t
+				 -> (r : _int)
+				 -> (check r 'cfsetspeed))))
+				   
+
+(define-termios cfmakeraw (_fun _TERMIOS-pointer -> _void))
+
+(define-termios tcsendbreak (_fun _file-port/no-null _int
+				  -> (r : _int)
+				  -> (check r 'tcsendbreak)))
+
+(define-termios tcflush (_fun _file-port/no-null _int
+			      -> (r : _int)
+			      -> (check r 'tcsendbreak)))
+
+(define-termios tcflow (_fun _file-port/no-null _int
+			     -> (r : _int)
+			     -> (check r 'tcsendbreak)))
+
+;; TODO: conditionally basing on __USE_UNIX98 or __USE_XOPEN2K8
+;; TODO: _pid_t ?
+(define-termios tcgetsid (_fun _file-port/no-null -> _uint))

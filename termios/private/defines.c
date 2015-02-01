@@ -14,6 +14,7 @@ Scheme_Object* scheme_reload(Scheme_Env* env)
   obj = scheme_make_integer(a); \
   scheme_add_global(#a, obj, mod);
 
+  DEF(__USE_MISC);
   DEF(NCCS);
 
   /* c_cc characters */
