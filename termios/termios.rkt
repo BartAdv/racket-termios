@@ -1,7 +1,8 @@
 #lang racket/base
 
 (require ffi/unsafe
-	 ffi/unsafe/define)
+	 ffi/unsafe/define
+	 racket/match)
 
 (require "private/defines.rkt")
 (provide (all-from-out "private/defines.rkt"))

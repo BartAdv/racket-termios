@@ -1,4 +1,5 @@
 #include <termios.h>
+#include <errno.h>
 #include "escheme.h"
 
 #define MODULE_NAME "defines"
@@ -16,7 +17,7 @@ Scheme_Object* scheme_reload(Scheme_Env* env)
 
   DEF(EBADF);
   DEF(ENOTTY);
-  DEF(EINTRY);
+  DEF(EINTR);
   DEF(EINVAL);
   DEF(EIO);
   
