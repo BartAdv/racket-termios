@@ -1,3 +1,3 @@
 #lang setup/infotab
 
-(define collection "termios")
+(define collection 'multi)
