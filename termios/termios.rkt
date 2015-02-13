@@ -129,7 +129,7 @@
 			     -> (r : _int)
 			     -> (check r 'tcsendbreak)))
 
-(compile-when __USE_MISC (provide tcgetsid))
+(compile-when (or __USE_UNIX98 __USE_XOPEN2K8) (provide tcgetsid))
 ;; TODO: _pid_t ?
 (compile-when (or __USE_UNIX98 __USE_XOPEN2K8)
  (define-termios tcgetsid (_fun _file-port/no-null -> _uint)))
