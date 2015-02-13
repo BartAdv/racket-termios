@@ -4,6 +4,13 @@
 
 #define MODULE_NAME "defines"
 
+void define_bool(Scheme_Env* mod, const char* n, int v)
+{
+  Scheme_Object* obj;
+  obj = v ? scheme_true : scheme_false;
+  scheme_add_global(n, obj, mod);
+}
+
 Scheme_Object* scheme_reload(Scheme_Env* env)
 {
   Scheme_Env *mod;
@@ -20,11 +27,37 @@ Scheme_Object* scheme_reload(Scheme_Env* env)
   DEF(EINTR);
   DEF(EINVAL);
   DEF(EIO);
-  
+	      
 #if defined __USE_MISC
-  DEF(__USE_MISC);
+  define_bool(mod, "__USE_MISC", 1);
+#else
+  define_bool(mod, "__USE_MISC", 0);
+#endif
+
+#if defined __USE_UNIX98
+  define_bool(mod, "__USE_UNIX98", 1);
+#else
+  define_bool(mod, "__USE_UNIX98", 0);
+#endif
+
+#if defined __USE_XOPEN2K8
+  define_bool(mod, "__USE_XOPEN2K8", 1);
+#else
+  define_bool(mod, "__USE_XOPEN2K8", 0);
+#endif
+
+#if defined _HAVE_STRUCT_TERMIOS_C_ISPEED
+  define_bool(mod, "_HAVE_STRUCT_TERMIOS_C_ISPEED", 1);
+#else
+  define_bool(mod, "_HAVE_STRUCT_TERMIOS_C_ISPEED", 0);
 #endif
   
+#if defined _HAVE_STRUCT_TERMIOS_C_OSPEED
+  define_bool(mod, "_HAVE_STRUCT_TERMIOS_C_OSPEED", 1);
+#else
+  define_bool(mod, "_HAVE_STRUCT_TERMIOS_C_OSPEED", 0);
+#endif
+
   DEF(NCCS);
 
   /* c_cc characters */

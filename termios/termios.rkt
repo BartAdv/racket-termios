@@ -1,4 +1,4 @@
-#lang racket/base
+#lang racket
 
 (require ffi/unsafe
 	 ffi/unsafe/define
@@ -6,22 +6,41 @@
 
 (require "private/defines.rkt")
 (provide (all-from-out "private/defines.rkt"))
+(require (for-syntax "private/defines.rkt"))
 
 (provide tcgetattr tcsetattr cfgetospeed cfgetispeed cfsetspeed
-	 cfmakeraw tcsendbreak tcflush tcflow tcgetsid)
+	 cfmakeraw tcsendbreak tcflush tcflow)
 
 (define _tcflag_t _uint)
 (define _cc_t _byte)
 (define _speed_t _uint)
 
-(define-cstruct _TERMIOS
-  ([c_iflag _tcflag_t]
-   [c_oflag _tcflag_t]
-   [c_cflag _tcflag_t]
-   [c_lflag _tcflag_t]
-   [c_cc (_array/vector _cc_t NCCS)]
-   [c_ispeed _speed_t]
-   [c_ospeed _speed_t]))
+;; oh, this is cheap
+(define-syntax (compile-when stx)
+  (define s (syntax->datum stx))
+  (if (eval (cadr s)) (datum->syntax stx (caddr s)) #'(void)))
+
+(begin-for-syntax
+ (define iospeed-fields? (and _HAVE_STRUCT_TERMIOS_C_ISPEED  _HAVE_STRUCT_TERMIOS_C_OSPEED)))
+
+(compile-when iospeed-fields?
+	      (define-cstruct _TERMIOS
+		([c_iflag _tcflag_t]
+		 [c_oflag _tcflag_t]
+		 [c_cflag _tcflag_t]
+		 [c_lflag _tcflag_t]
+		 [c_cc (_array/vector _cc_t NCCS)]
+		 [c_ispeed _speed_t]
+		 [c_ospeed _speed_t])))
+
+(compile-when (not iospeed-fields?)
+	      (define-cstruct _TERMIOS
+		([c_iflag _tcflag_t]
+		 [c_oflag _tcflag_t]
+		 [c_cflag _tcflag_t]
+		 [c_lflag _tcflag_t]
+		 [c_cc (_array/vector _cc_t NCCS)])))
+
 
 (define-ffi-definer define-termios (ffi-lib "libc.so.6"))
 
@@ -88,12 +107,12 @@
 	-> (r : _int)
 	-> (einval r)))
 
-;; TODO: make it conditional basing on __USE_MISC
-(define-termios cfsetspeed
-  (_fun #:save-errno 'posix
-	_TERMIOS-pointer _speed_t
-	-> (r : _int)
-	-> (einval r)))
+(compile-when __USE_MISC
+ (define-termios cfsetspeed
+   (_fun #:save-errno 'posix
+	 _TERMIOS-pointer _speed_t
+	 -> (r : _int)
+	 -> (einval r))))
 				   
 
 (define-termios cfmakeraw (_fun _TERMIOS-pointer -> _void))
@@ -110,6 +129,7 @@
 			     -> (r : _int)
 			     -> (check r 'tcsendbreak)))
 
-;; TODO: conditionally basing on __USE_UNIX98 or __USE_XOPEN2K8
+(compile-when __USE_MISC (provide tcgetsid))
 ;; TODO: _pid_t ?
-(define-termios tcgetsid (_fun _file-port/no-null -> _uint))
+(compile-when (or __USE_UNIX98 __USE_XOPEN2K8)
+ (define-termios tcgetsid (_fun _file-port/no-null -> _uint)))
