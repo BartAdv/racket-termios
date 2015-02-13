@@ -11,6 +11,8 @@
 (provide tcgetattr tcsetattr cfgetospeed cfgetispeed cfsetspeed
 	 cfmakeraw tcsendbreak tcflush tcflow)
 
+(provide (struct-out TERMIOS))
+
 (define _tcflag_t _uint)
 (define _cc_t _byte)
 (define _speed_t _uint)
