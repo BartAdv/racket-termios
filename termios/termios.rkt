@@ -59,35 +59,28 @@
     ;; no output
     (lambda (x) x)))
 
-(define (check v who)
+(define (check f v who)
   (unless (zero? v)
-    (error who "failed: ~a" v)))
+    (match (saved-errno)
+      [(== EBADF) (raise-argument-error '_file-port/no-null "file-port" f)]
+      [(== EINTR) (error "Interrupted system call")]
+      [(== ENOTTY) (error who "File associated with given file port is not a terminal")]
+      [(== EINVAL) (error "The optional_actions argument is not a supported value, or an attempt was made to change an attribute represented in the termios structure to an unsupported value")]
+      [(== EIO) (error "The process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU")]
+      [_ (error who "Unknown errno: ~a" (saved-errno))])))
 
 (define-termios tcgetattr
   (_fun #:save-errno 'posix
 	(f : _file-port/no-null)
 	(t : (_ptr o _TERMIOS))
 	-> (r : _int)
-	-> (if (zero? r)
-	       t
-	       (match (saved-errno)
-		 [(== EBADF) (raise-argument-error '_file-port/no-null "file-port" f)]
-		 [(== ENOTTY) (error "File associated with given file port is not a terminal")]
-		 [_ (error 'tcgetattr "Unknown errno: ~a" (saved-errno))]))))
-
+	-> (when (check f r 'tcgetattr) t)))
 
 (define-termios tcsetattr
   (_fun #:save-errno 'posix
 	(f : _file-port/no-null) _int _TERMIOS-pointer ; const pointer?
 	-> (r : _int)
-	-> (unless (zero? r)
-	     (match (saved-errno)
-	       [(== EBADF) (raise-argument-error '_file_port/no-null "file-port" f)]
-	       [(== EINTR) (error "A signal interrupted tcsetattr")]
-	       [(== EINVAL) (error "The optional_actions argument is not a supported value, or an attempt was made to change an attribute represented in the termios structure to an unsupported value")]
-	       [(== ENOTTY) (error "File associated with given file port is not a terminal")]
-	       [(== EIO) (error "The process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU")]
-	       [_ (error 'tcsetattr "nknown errno: ~a" (saved-errno))]))))
+	-> (check f r 'tcsetattr)))
 
 (define-termios cfgetospeed (_fun _TERMIOS-pointer -> _speed_t))
 
@@ -119,19 +112,22 @@
 
 (define-termios cfmakeraw (_fun _TERMIOS-pointer -> _void))
 
-(define-termios tcsendbreak (_fun _file-port/no-null _int
+(define-termios tcsendbreak (_fun #:save-errno 'posix
+				  (f :  _file-port/no-null) _int
 				  -> (r : _int)
-				  -> (check r 'tcsendbreak)))
+				  -> (check f r 'tcsendbreak)))
 
-(define-termios tcflush (_fun _file-port/no-null _int
+(define-termios tcflush (_fun (f :  _file-port/no-null) _int
 			      -> (r : _int)
-			      -> (check r 'tcsendbreak)))
+			      -> (check f r 'tcflush)))
 
-(define-termios tcflow (_fun _file-port/no-null _int
+(define-termios tcflow (_fun (f :  _file-port/no-null) _int
 			     -> (r : _int)
-			     -> (check r 'tcsendbreak)))
+			     -> (check f r 'tcflow)))
 
 (compile-when (or __USE_UNIX98 __USE_XOPEN2K8) (provide tcgetsid))
 ;; TODO: _pid_t ?
 (compile-when (or __USE_UNIX98 __USE_XOPEN2K8)
- (define-termios tcgetsid (_fun _file-port/no-null -> _uint)))
+	      (define-termios tcgetsid (_fun (f : _file-port/no-null)
+					     -> (r :  _uint)
+					     -> (check f r 'tcgetsid))))
