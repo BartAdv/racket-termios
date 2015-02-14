@@ -43,8 +43,7 @@
 		 [c_lflag _tcflag_t]
 		 [c_cc (_array/vector _cc_t NCCS)])))
 
-;; most likely versions need to be adjusted
-(define-ffi-definer define-termios (ffi-lib "libc" '["6" #f]))
+(define-ffi-definer define-termios #f)
 
 (define scheme_get_port_fd
   (get-ffi-obj 'scheme_get_port_fd #f (_fun _racket -> _intptr)))
