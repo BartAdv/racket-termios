@@ -58,28 +58,26 @@
     ;; no output
     (lambda (x) x)))
 
-(define (check f v who)
+(define strerror
+  (get-ffi-obj 'strerror #f (_fun _int -> _bytes)))
+
+(define (check v who)
   (unless (zero? v)
-    (match (saved-errno)
-      [(== EBADF) (raise-argument-error '_file-port/no-null "file-port" f)]
-      [(== EINTR) (error "Interrupted system call")]
-      [(== ENOTTY) (error who "File associated with given file port is not a terminal")]
-      [(== EINVAL) (error "The optional_actions argument is not a supported value, or an attempt was made to change an attribute represented in the termios structure to an unsupported value")]
-      [(== EIO) (error "The process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU")]
-      [_ (error who "Unknown errno: ~a" (saved-errno))])))
+    (let ([str (strerror (saved-errno))])
+      (error who (bytes->string/locale str)))))
 
 (define-termios tcgetattr
   (_fun #:save-errno 'posix
 	(f : _file-port/no-null)
 	(t : (_ptr o _TERMIOS))
 	-> (r : _int)
-	-> (when (check f r 'tcgetattr) t)))
+	-> (when (check r 'tcgetattr) t)))
 
 (define-termios tcsetattr
   (_fun #:save-errno 'posix
 	(f : _file-port/no-null) _int _TERMIOS-pointer ; const pointer?
 	-> (r : _int)
-	-> (check f r 'tcsetattr)))
+	-> (check r 'tcsetattr)))
 
 (define-termios cfgetospeed (_fun _TERMIOS-pointer -> _speed_t))
 
@@ -114,19 +112,19 @@
 (define-termios tcsendbreak (_fun #:save-errno 'posix
 				  (f :  _file-port/no-null) _int
 				  -> (r : _int)
-				  -> (check f r 'tcsendbreak)))
+				  -> (check r 'tcsendbreak)))
 
 (define-termios tcflush (_fun (f :  _file-port/no-null) _int
 			      -> (r : _int)
-			      -> (check f r 'tcflush)))
+			      -> (check r 'tcflush)))
 
 (define-termios tcflow (_fun (f :  _file-port/no-null) _int
 			     -> (r : _int)
-			     -> (check f r 'tcflow)))
+			     -> (check r 'tcflow)))
 
 (compile-when (or __USE_UNIX98 __USE_XOPEN2K8) (provide tcgetsid))
 ;; TODO: _pid_t ?
 (compile-when (or __USE_UNIX98 __USE_XOPEN2K8)
 	      (define-termios tcgetsid (_fun (f : _file-port/no-null)
 					     -> (r :  _uint)
-					     -> (check f r 'tcgetsid))))
+					     -> (check r 'tcgetsid))))
